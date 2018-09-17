@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -40,8 +42,7 @@ func handleConnection(conn net.Conn) {
 
 	buf := make([]byte, 256)
 
-	_, err := conn.Write([]byte("READY>\r\n"))
-	if err != nil {
+	if _, err := conn.Write([]byte("READY>\r\n")); err != nil {
 		log.Print("error writing to client", conn.RemoteAddr())
 		return
 	}
@@ -55,9 +56,26 @@ func handleConnection(conn net.Conn) {
 	}
 
 	log.Printf("got %d bytes from client: % 2x", n, buf[:n])
-	_, err = conn.Write([]byte(":)\r\n"))
-	if err != nil {
+
+	if _, err = conn.Write([]byte(":)\r\n")); err != nil {
 		log.Print(err)
 	}
+
+	deobfs := strings.Map(func(r rune) rune {
+		return r + '+'
+	}, string(buf))
+	log.Printf("deo: %q", deobfs)
+	data := make([]byte, 256)
+
+	i := 0
+	for i < len(deobfs) {
+		n, err = base64.StdEncoding.Decode(data, []byte(deobfs[i:]))
+		if err == nil {
+			break
+		}
+		i++
+	}
+	log.Printf("Data: %q", data[:n])
+
 	return
 }

@@ -48,8 +48,7 @@ func main() {
 	text := scan.Text()
 	log.Print("sending data to server")
 
-	encoded := strings.Split(
-		base64.StdEncoding.EncodeToString([]byte(text)), "=")[0]
+	encoded := base64.StdEncoding.EncodeToString([]byte(text))
 	block := make([]byte, 256)
 	mathrand.Seed(time.Now().UnixNano())
 	mathrand.Read(block)
@@ -59,14 +58,13 @@ func main() {
 	}, encoded)
 
 	copy(block[len(block)-len(obfs):], obfs)
-	_, err = conn.Write([]byte(block))
-	if err != nil {
+
+	if _, err = conn.Write([]byte(block)); err != nil {
 		log.Printf("error writing to %s: %s", conn.RemoteAddr(), err)
 		os.Exit(-1)
 	}
 
-	n, err = conn.Read(buf)
-	if err != nil {
+	if n, err = conn.Read(buf); err != nil {
 		log.Print(err)
 		os.Exit(-1)
 	}
