@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -9,6 +10,9 @@ import (
 
 func main() {
 	service := ":1919"
+	if len(os.Args) > 1 {
+		service = fmt.Sprintf(":%s", os.Args[1])
+	}
 	listener, err := net.Listen("tcp", service)
 	if err != nil {
 		log.Printf("listen failed: %s", err)
@@ -50,7 +54,7 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
-	log.Printf("got %d bytes from client: %q", n, buf[:n])
+	log.Printf("got %d bytes from client: % 2x", n, buf[:n])
 	_, err = conn.Write([]byte(":)\r\n"))
 	if err != nil {
 		log.Print(err)

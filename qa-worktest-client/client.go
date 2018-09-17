@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 func usage(progname string) {
@@ -47,14 +48,15 @@ func main() {
 	text := scan.Text()
 	log.Print("sending data to server")
 
-	encoded := base64.StdEncoding.EncodeToString([]byte(text))
+	encoded := strings.Split(
+		base64.StdEncoding.EncodeToString([]byte(text)), "=")[0]
 	block := make([]byte, 256)
+	mathrand.Seed(time.Now().UnixNano())
 	mathrand.Read(block)
 
 	obfs := strings.Map(func(r rune) rune {
 		return r - '+'
 	}, encoded)
-	obfs = strings.Split(obfs, "=")[0]
 
 	copy(block[len(block)-len(obfs):], obfs)
 	_, err = conn.Write([]byte(block))
